@@ -10,8 +10,9 @@ window.addEventListener('load', function(){
             this.width = width;
             this.height = height;
             this.enemies = [];
-            this.enemyInterval = 100;
+            this.enemyInterval = 500;
             this.enemyTimer = 0;
+            this.enemyTypes = ["worm", "ghost"];
         }
         update(deltaTime) {
           this.enemies = this.enemies.filter(object => !object.markedForDeletion);
@@ -27,10 +28,13 @@ window.addEventListener('load', function(){
           this.enemies.forEach((objeckt) => objeckt.draw(this.ctx));
         }
         #addNewEnemy() {
-            this.enemies.push(new Worm(this));
-            this.enemies.sort(function(a,b){
+            const randomEnemy = this.enemyTypes[Math.floor(Math.random() * this.enemyTypes.length)];
+            if (randomEnemy == "worm") this.enemies.push(new Worm(this));
+            if (randomEnemy == "ghost") this.enemies.push(new Ghost(this));
+            /*this.enemies.sort(function(a,b){
               return a.y - b.y;
             })
+            */
         }
     }
 
@@ -40,7 +44,7 @@ window.addEventListener('load', function(){
         this.markedForDeletion = false;
       }
       update(deltaTime) {
-        this.x-= this.vx;
+        this.x-= this.vx * deltaTime;
         if (this.x < 0 - this.width) this.markedForDeletion = true;
       }
       draw(ctx) {
@@ -56,12 +60,37 @@ window.addEventListener('load', function(){
         this.width = this.spriteWidth/2;
         this.height = this.spriteHeight/2;
         this.x = this.game.width;
-        this.y = Math.random() * this.game.height;
+        this.y = this.game.height - this.height;
         this.image = worm;
-        this.vx = Math.random() * 0.1 + 5;
+        this.vx = Math.random() * 0.1 + 0.1;
       }
     }
-
+    class Ghost extends Enemy {
+      constructor(game) {
+        super(game);
+        this.spriteWidth = 261;
+        this.spriteHeight = 209;
+        this.width = this.spriteWidth / 2;
+        this.height = this.spriteHeight / 2;
+        this.x = this.game.width;
+        this.y = Math.random() * this.game.height * 0.8;
+        this.image = ghost;
+        this.vx = Math.random() * 0.2 + 0.1;
+        this.angle = 0;
+        this.curve = Math.random() * 3;
+      }
+      update(deltaTime){
+        super.update(deltaTime);
+        this.y += Math.sin(this.angle) * 1;
+        this.angle += 0.02;
+      }
+      draw(){
+        ctx.save();
+        ctx.globalAlpha = 0.7
+        super.draw(ctx);
+        ctx.restore();
+      }
+    }
     const game = new Game(ctx, canvas.width, canvas.height);
 
     let lastTime = 1;
